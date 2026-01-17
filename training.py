@@ -21,7 +21,7 @@ NUM_WORKERS = 8
 PREFETCH_FACTOR = 2
 
 
-dataset = SemanticDroneDataset("./archive/classes_dataset/classes_dataset/")
+dataset = SemanticDroneDataset("./archive/classes_dataset/classes_dataset/", "original", "mask")
 loader = DataLoader(
     dataset,
     batch_size=BATCH_SIZE,
