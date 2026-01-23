@@ -14,3 +14,5 @@ The below example is from a model trained on 300 of the images from the dataset,
 | Original Image | Predicted output | Expected output |
 | -------------- | ---------------- | --------------- | 
 | <img src="./assets/474.png" width=500/> | <img src="./assets/474_result.png" width=500/> <br/> <center>Note: The prediction is a center crop.</center>| <img src="./assets/474_expected.png" width=500/> |
+
+This model's parameters are available [here](https://drive.google.com/file/d/1ijUyBgm41yzcVLc5sLNISdJ-x3RdlibL/view?usp=sharing) (`0.0271` in the name is the cost of the model on the training set).
