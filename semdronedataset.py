@@ -13,32 +13,25 @@ class SemanticDroneDataset(Dataset):
         self.images_path = os.path.join(images_dir, "original_images")
         self.masks_path = os.path.join(images_dir, "label_images_semantic")
         self.images = sorted(os.listdir(os.path.join(images_dir, "original_images")))
-        self.masks = sorted(
-            os.listdir(os.path.join(images_dir, "label_images_semantic"))
-        )
-
-        # self.resize = resize
+        self.masks = sorted(os.listdir(os.path.join(images_dir, "label_images_semantic")))
 
     def __len__(self) -> int:
         return len(self.images)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor, str]:
         img = torch.tensor(
-            np.transpose(
-                np.array(
-                    Image.open(
-                        os.path.join(self.images_path, self.images[idx])
-                    ).convert("RGB")
-                ),
-                axes=(2, 0, 1),
-            ),
-            dtype=torch.float32,
+            np.transpose(np.array(
+                Image.open(os.path.join(self.images_path, self.images[idx])).convert(
+                    "RGB"
+                )
+            ), axes=(2, 0, 1)),
+            dtype=torch.float32
         )
         mask = torch.tensor(
             np.array(
                 Image.open(os.path.join(self.masks_path, self.masks[idx])),
             ),
-            dtype=torch.long,
+            dtype=torch.long
         )
 
         if self.transform:
@@ -46,24 +39,16 @@ class SemanticDroneDataset(Dataset):
             mask.unsqueeze_(0)
             mask = self.transform(mask)
             mask.squeeze_(0)
-
-        # img = TF.resize(img, size=self.resize)
-        # print(mask.shape)
-        # mask = TF.resize(mask, size=self.resize)
-
-        # img = img.permute(2, 0, 1)
-        # mask = mask.permute(2, 0, 1)
+        
         return img, mask, self.images[idx]
-
 
 if __name__ == "__main__":
     from torch.utils.data import DataLoader
-
     data = SemanticDroneDataset("archive/classes_dataset/classes_dataset/")
     loader = DataLoader(data)
     for i, j, name in loader:
         print(i.shape, j.shape)
         cv2.imshow("a", np.transpose(i.numpy()[0], axes=(1, 2, 0)).astype(np.uint8))
-        cv2.imshow("b", j.numpy()[0].astype(np.uint8) * 40)
+        cv2.imshow("b", j.numpy()[0].astype(np.uint8)*40)
         cv2.waitKey(0)
         cv2.destroyAllWindows()

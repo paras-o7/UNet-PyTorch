@@ -3,13 +3,13 @@ from torch.utils.data import DataLoader, Subset
 from semdronedataset import SemanticDroneDataset
 from unet import UNet
 import matplotlib.pyplot as plt
-# from torchvision import transforms
+from torchvision import transforms
 import torchvision.transforms.functional as TF
 
 # HYPERPARAMETERS
-EPOCHS = 100
-BATCH_SIZE = 2
-LEARNING_RATE = 3e-4
+EPOCHS = 250
+BATCH_SIZE = 8
+LEARNING_RATE = 5e-4
 if torch.cuda.is_available():
     DEVICE = "cuda"
 elif torch.xpu.is_available():
@@ -18,6 +18,8 @@ else:
     DEVICE = "cpu"
 SHUFFLE = True
 PIN_MEMORY = True
+DATASET_PATH = "./archive/classes_dataset/classes_dataset/"
+TRAINING_SET_IDX = list(range(300))
 SAVE_DIR = "./model_save/binary.pth"
 SAVE_DIR_BEST = "./model_save/binary_best.pth"
 NUM_WORKERS = 4
@@ -35,11 +37,10 @@ loss_text = ax.text(0.02, 0.95, "", transform=ax.transAxes, fontsize=10, vertica
 
 
 dataset = SemanticDroneDataset(
-    "./archive/classes_dataset/classes_dataset/",
+    DATASET_PATH,
     # transform=transforms.Resize((368, 480), interpolation=TF.InterpolationMode.NEAREST),
 )
-trainset = Subset(dataset, indices=list(range(300)))
-testset = Subset(dataset, indices=list(range(300, 400)))
+trainset = Subset(dataset, indices=TRAINING_SET_IDX)
 train_loader = DataLoader(
     trainset,
     batch_size=BATCH_SIZE,
@@ -48,15 +49,6 @@ train_loader = DataLoader(
     num_workers=NUM_WORKERS,
     prefetch_factor=PREFETCH_FACTOR,
 )
-test_loader = DataLoader(
-    testset,
-    batch_size=1,
-    shuffle=False,
-    pin_memory=PIN_MEMORY,
-    num_workers=NUM_WORKERS,
-    prefetch_factor=PREFETCH_FACTOR,
-)
-
 
 
 weights = torch.zeros(5).to(DEVICE)
@@ -68,7 +60,7 @@ weights = weights.sum() / weights
 weights = weights / weights.mean()
 print(weights)
 
-model = UNet()
+model = torch.nn.DataParallel(UNet())
 print(f"Using device {DEVICE}")
 model = model.to(DEVICE)
 optim = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
@@ -109,6 +101,7 @@ try:
         loss_avg /= len(train_loader)
 
         print(f"EPOCH {i+1}, COST = {loss_avg}")
+        ax.set_title(f"Training Loss | LR = {LEARNING_RATE} | Epoch number {i+2}, Previous epoch's cost = {loss_avg}")
 
 except KeyboardInterrupt:
     print("Haulting training.")

@@ -24,16 +24,10 @@ class UNet(nn.Module):
         self.down_layers.append(doubleConv(in_channels, channels[0]))
 
         for i in range(len(channels) - 1):
-            self.down_layers.append(
-                nn.Sequential(
-                    nn.MaxPool2d(2, stride=2), doubleConv(channels[i], channels[i + 1])
-                )
-            )
+            self.down_layers.append(nn.Sequential(nn.MaxPool2d(2, stride=2), doubleConv(channels[i], channels[i + 1])))
 
         self.up_layers = nn.ModuleList()
-        self.up_layers.append(
-            nn.ConvTranspose2d(channels[-1], channels[-1], 2, stride=2)
-        )
+        self.up_layers.append(nn.ConvTranspose2d(channels[-1], channels[-1], 2, stride=2))
 
         for i in reversed(range(2, len(channels))):
             self.up_layers.append(
@@ -45,21 +39,13 @@ class UNet(nn.Module):
 
         self.up_layers.append(
             nn.Sequential(
-                nn.Conv2d(
-                    channels[1] + channels[0],
-                    channels[0],
-                    kernel_size=3,
-                    stride=1,
-                    padding=0,
-                ),
+                nn.Conv2d(channels[1] + channels[0], channels[0], kernel_size=3, stride=1, padding=0),
                 nn.ReLU(),
             )
         )
         # self.up_layers.append(doubleConv(channels[0] + channels[1], channels[0]))
 
-        self.final_conv = nn.Conv2d(
-            channels[0], out_channels, kernel_size=1, stride=1, padding=0
-        )
+        self.final_conv = nn.Conv2d(channels[0], out_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         skip = []
